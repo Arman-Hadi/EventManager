@@ -1,4 +1,4 @@
-from os import environ
+from os import environ, getenv
 
 from django.urls import path
 
@@ -6,5 +6,5 @@ from .views import webhook
 
 
 urlpatterns = [
-    path(f'hook_{environ.get("HOOK_UUID")}', webhook, name='webhook'),
+    path(f'hook_{getenv("HOOK_UUID")}', webhook, name='webhook'),
 ]
