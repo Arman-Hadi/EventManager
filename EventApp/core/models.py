@@ -4,8 +4,9 @@ from django.contrib.auth.models import PermissionsMixin, BaseUserManager, \
     Group
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.utils.translation import gettext_lazy as _
-from django.contrib.auth.validators import ASCIIUsernameValidator
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.mail import send_mail
+from django.core.exceptions import ImproperlyConfigured
 
 from jdatetime import datetime as jdt
 
@@ -58,17 +59,24 @@ class UserManager(BaseUserManager):
             return (self.get(email=email), False)
 
 class User(AbstractBaseUser, PermissionsMixin):
+    phone_number = models.IntegerField(
+        _('phone_number'),
+        max_length=15, unique=True, null=True, blank=True
+    )
     username = models.CharField(
         _('username'),
         max_length=150,
         unique=True,
         help_text=_('Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'),
-        validators=[ASCIIUsernameValidator()],
+        validators=[UnicodeUsernameValidator()],
         error_messages={
             'unique': _("A user with that username already exists."),
         },
     )
-    email = models.EmailField('Email Address', unique=True)
+    email = models.EmailField(
+        _('Email Address'),
+        unique=True, null=True, blank=True
+    )
     name = models.CharField(_('name'), max_length=255, default=username)
     is_staff = models.BooleanField(
         _('staff status'),
@@ -77,7 +85,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     is_active = models.BooleanField(
         _('active'),
-        default=True,
+        default=False,
         help_text=_(
             'Designates whether this user should be treated as active. '
             'Unselect this instead of deleting accounts.'
@@ -94,7 +102,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     EMAIL_FIELD = 'email'
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email']
 
     objects = UserManager()
 
@@ -105,6 +112,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     def email_user(self, subject, message, from_email=None, **kwargs):
         """Send an email to this user."""
         send_mail(subject, message, from_email, [self.email], **kwargs)
+
+    def set_username_by_name(self):
+        if not self.name:
+            raise ImproperlyConfigured('User must have a name!')
+        self.username = f'{self.name}{self.id}'
+        return self.username
 
     def is_joined_recently(self):
         """
