@@ -61,7 +61,7 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     phone_number = models.IntegerField(
         _('phone_number'),
-        max_length=15, unique=True, null=True, blank=True
+        unique=True, null=True, blank=True
     )
     username = models.CharField(
         _('username'),

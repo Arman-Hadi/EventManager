@@ -14,7 +14,7 @@ from core.models import WebHookMessage
 @csrf_exempt
 @require_POST
 @non_atomic_requests
-def acme_webhook(request):
+def webhook(request):
     WebHookMessage.objects.filter(
         received_at__lte=timezone.now() - timedelta(days=2)
     ).delete()
