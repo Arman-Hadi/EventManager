@@ -18,14 +18,19 @@ def webhook(request):
     WebHookMessage.objects.filter(
         recieved_at__lte=timezone.now() - timedelta(days=2)
     ).delete()
-    print(request.body)
-    payload = loads(request.body)
-    WebHookMessage.objects.create(
-        received_at=timezone.now(),
-        payload=payload,
-    )
-    process_webhook_payload(payload)
-    return HttpResponse("Message received okay.", content_type="text/plain")
+    try:
+        print(request.body)
+        payload = loads(request.body)
+        WebHookMessage.objects.create(
+            received_at=timezone.now(),
+            payload=payload,
+        )
+        process_webhook_payload(payload)
+    except Exception as e:
+        print(f'---------------error:\n{e}')
+        print(request.body)
+    finally:
+        return HttpResponse("Message received okay.", content_type="text/plain")
 
 
 @atomic
