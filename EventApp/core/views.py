@@ -18,6 +18,7 @@ def webhook(request):
     WebHookMessage.objects.filter(
         recieved_at__lte=timezone.now() - timedelta(days=2)
     ).delete()
+    print(request.body)
     payload = loads(request.body)
     WebHookMessage.objects.create(
         received_at=timezone.now(),
