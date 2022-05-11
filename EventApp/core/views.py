@@ -19,7 +19,6 @@ def webhook(request):
         recieved_at__lte=timezone.now() - timedelta(days=2)
     ).delete()
     try:
-        print(request.POST['data'])
         payload = loads(request.body)
         WebHookMessage.objects.create(
             received_at=timezone.now(),
@@ -28,7 +27,6 @@ def webhook(request):
         process_webhook_payload(payload)
     except Exception as e:
         print(f'---------------error:\n{e}')
-        print(request.body)
         print(request.POST)
     finally:
         return HttpResponse("Message received okay.", content_type="text/plain")
