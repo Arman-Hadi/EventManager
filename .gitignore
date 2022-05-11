@@ -1,6 +1,7 @@
 .vscode
 .env
 *.sqlite3
+/core/db.sqlite3
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
