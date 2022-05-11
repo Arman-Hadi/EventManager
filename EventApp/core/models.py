@@ -9,6 +9,7 @@ from django.core.mail import send_mail
 from django.core.exceptions import ImproperlyConfigured
 
 from jdatetime import datetime as jdt
+from datetime import datetime
 
 
 class WebHookMessage(models.Model):
@@ -130,3 +131,50 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def jdate_joined(self):
         return jdt.fromgregorian(datetime=self.date_joined)
+
+
+class Ticket(models.Model):
+    event_id = models.CharField(max_length=30, blank=True, null=True)
+    ticket_id = models.CharField(max_length=30, blank=True, null=True)
+    type = models.CharField(max_length=20, blank=True, null=True)
+    title = models.CharField(max_length=50, blank=True, null=True)
+    available_count = models.CharField(max_length=50, blank=True, null=True)
+    price = models.CharField(max_length=20, blank=True, null=True)
+    description = models.CharField(max_length=50, blank=True, null=True)
+    first_name = models.CharField(max_length=50, blank=True, null=True)
+    last_name = models.CharField(max_length=50, blank=True, null=True)
+    email = models.CharField(max_length=100, blank=True, null=True)
+    mobile = models.CharField(max_length=20, blank=True, null=True)
+    discount_id = models.CharField(max_length=30, blank=True, null=True)
+    canceled = models.CharField(max_length=10, blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now())
+    updated_at = models.DateTimeField(default=timezone.now())
+
+    def from_evand(self, data: dict):
+        try:
+            self.event_id = data.get('data[ticket][data][event_id]', None)
+            self.ticket_id = data.get('data[ticket_id]', None)
+            self.type = data.get('data[ticket][data][type]', None)
+            self.title = data.get('data[ticket][data][type]', None)
+            self.available_count = data.get('data[ticket][data][available_count]', None)
+            self.price = data.get('data[ticket][data][price]', None)
+            self.description = data.get('data[ticket][data][description]', None)
+            self.first_name = data.get('data[first_name]', None)
+            self.last_name = data.get('data[last_name]', None)
+            self.email = data.get('data[email]', None)
+            self.mobile = data.get('data[mobile]', None)
+            self.discount_id = data.get('data[discount_id]', None)
+            self.canceled = data.get('data[canceled]', None)
+
+            date_format = '%Y-%m-%dT%H:%M:%S%z'
+            date = data.get('data[created_at]', timezone.now().strftime('%Y-%m-%dT%H:%M:%S%z'))
+            self.created_at = datetime.strptime(date, date_format)
+
+            date = data.get('data[updated_at]', timezone.now().strftime('%Y-%m-%dT%H:%M:%S%z'))
+            self.updated_at = datetime.strptime(date, date_format)
+
+            self.save()
+        except Exception as e:
+            print('----------error:')
+            print(str(e))
+        return self
