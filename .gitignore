@@ -4,6 +4,7 @@
 /core/db.sqlite3
 /EventApp/static
 //EventApp/media
+*.pyc
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

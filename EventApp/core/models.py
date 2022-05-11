@@ -15,7 +15,7 @@ from datetime import datetime
 class WebHookMessage(models.Model):
     recieved_at = models.DateTimeField(
         help_text=_('When message has recieved.'),
-        default=timezone.now()
+        default=timezone.now
     )
     payload = models.JSONField(default=None, null=True)
 
@@ -27,37 +27,29 @@ class WebHookMessage(models.Model):
 
 class UserManager(BaseUserManager):
     ''' User Model Manager '''
-    def create_user(self, username, email, password=None, **extra_fields):
+    def create_user(self, username, password=None, **extra_fields):
         ''' Exclusive create user function '''
-        if not email:
-            raise ValueError('Email MUST be included!')
-
-        user = self.model(email=self.normalize_email(email),
-            username=username, **extra_fields)
-        user.set_password(password)
+        user = self.model(username=username, **extra_fields)
         user.save(using=self.db)
 
         return user
 
-    def create_superuser(self, username, email, password, **params):
+    def create_superuser(self, username, password, **params):
         ''' Exclusive create superuser function '''
-        user = self.create_user(username, email, password, **params)
+        user = self.create_user(username, password, **params)
         user.is_staff = True
         user.is_superuser = True
         user.save(using=self.db)
 
         return user
 
-    def create_or_get_user(self, username, email, password, **extra_fields):
+    def create_or_get_user(self, username, password, **extra_fields):
         """Create or get user with credentials"""
-        if not email:
-            raise ValueError('Email MUST be included!')
-
-        if self.filter(email=email).count() == 0:
-            return (self.create_user(username, email, password, **extra_fields),
+        if self.filter(username=username).count() == 0:
+            return (self.create_user(username, password, **extra_fields),
                 True)
         else:
-            return (self.get(email=email), False)
+            return (self.get(username=username), False)
 
 class User(AbstractBaseUser, PermissionsMixin):
     phone_number = models.IntegerField(
@@ -147,8 +139,8 @@ class Ticket(models.Model):
     mobile = models.CharField(max_length=20, blank=True, null=True)
     discount_id = models.CharField(max_length=30, blank=True, null=True)
     canceled = models.CharField(max_length=10, blank=True, null=True)
-    created_at = models.DateTimeField(default=timezone.now())
-    updated_at = models.DateTimeField(default=timezone.now())
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
 
     def from_evand(self, data: dict):
         try:
