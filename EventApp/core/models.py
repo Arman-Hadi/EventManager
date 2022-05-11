@@ -1,12 +1,13 @@
 from django.utils import timezone
 from django.db import models
-from django.contrib.auth.models import PermissionsMixin, BaseUserManager, \
-    Group
-from django.contrib.auth.base_user import AbstractBaseUser
+# from django.contrib.auth.models import PermissionsMixin, BaseUserManager, \
+#     Group
+# from django.contrib.auth.base_user import AbstractBaseUser
 from django.utils.translation import gettext_lazy as _
-from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.core.mail import send_mail
-from django.core.exceptions import ImproperlyConfigured
+# from django.contrib.auth.validators import UnicodeUsernameValidator
+# from django.core.mail import send_mail
+# from django.core.exceptions import ImproperlyConfigured
+from django.contrib.auth import get_user_model
 
 from jdatetime import datetime as jdt
 from datetime import datetime
@@ -25,112 +26,106 @@ class WebHookMessage(models.Model):
         ]
 
 
-class UserManager(BaseUserManager):
-    ''' User Model Manager '''
-    def create_user(self, username, password=None, **extra_fields):
-        ''' Exclusive create user function '''
-        user = self.model(username=username, **extra_fields)
-        user.save(using=self.db)
+# class UserManager(BaseUserManager):
+#     ''' User Model Manager '''
+#     def create_user(self, username, password, **extra_fields):
+#         ''' Exclusive create user function '''
+#         user = self.model(username=username, password=password, **extra_fields)
+#         user.save(using=self.db)
 
-        return user
+#         return user
 
-    def create_superuser(self, username, password, **params):
-        ''' Exclusive create superuser function '''
-        user = self.create_user(username, password, **params)
-        user.is_staff = True
-        user.is_superuser = True
-        user.save(using=self.db)
+#     def create_superuser(self, username, password, **params):
+#         ''' Exclusive create superuser function '''
+#         user = self.create_user(username, password, **params)
+#         user.is_staff = True
+#         user.is_active = True
+#         user.is_superuser = True
+#         user.save(using=self.db)
 
-        return user
+#         return user
 
-    def create_or_get_user(self, username, password, **extra_fields):
-        """Create or get user with credentials"""
-        if self.filter(username=username).count() == 0:
-            return (self.create_user(username, password, **extra_fields),
-                True)
-        else:
-            return (self.get(username=username), False)
+#     def create_or_get_user(self, username, password, **extra_fields):
+#         """Create or get user with credentials"""
+#         if self.filter(username=username).count() == 0:
+#             return (self.create_user(username, password, **extra_fields),
+#                 True)
+#         else:
+#             return (self.get(username=username), False)
 
-class User(AbstractBaseUser, PermissionsMixin):
-    phone_number = models.IntegerField(
-        _('phone_number'),
-        unique=True, null=True, blank=True
-    )
-    username = models.CharField(
-        _('username'),
-        max_length=150,
-        unique=True,
-        help_text=_('Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'),
-        validators=[UnicodeUsernameValidator()],
-        error_messages={
-            'unique': _("A user with that username already exists."),
-        },
-    )
-    email = models.EmailField(
-        _('Email Address'),
-        unique=True, null=True, blank=True
-    )
-    name = models.CharField(_('name'), max_length=255, default=username)
-    is_staff = models.BooleanField(
-        _('staff status'),
-        default=False,
-        help_text=_('Designates whether the user can log into this admin site.'),
-    )
-    is_active = models.BooleanField(
-        _('active'),
-        default=False,
-        help_text=_(
-            'Designates whether this user should be treated as active. '
-            'Unselect this instead of deleting accounts.'
-        ),
-    )
-    is_superuser = models.BooleanField(
-        _('superuser status'),
-        default=False,
-        help_text=_(
-            'Designates that this user has all permissions without '
-            'explicitly assigning them.'
-        ),
-    )
-    groups = models.ManyToManyField(
-            Group,
-            blank=True,
-            related_name="user_set",
-            related_query_name="user",
-            default=1
-        )
-    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+# class User(AbstractBaseUser, PermissionsMixin):
+#     phone_number = models.IntegerField(
+#         _('phone_number'),
+#         unique=True, null=True, blank=True
+#     )
+#     username = models.CharField(
+#         _('username'),
+#         max_length=150,
+#         unique=True,
+#         help_text=_('Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'),
+#         validators=[UnicodeUsernameValidator()],
+#         error_messages={
+#             'unique': _("A user with that username already exists."),
+#         },
+#     )
+#     email = models.EmailField(
+#         _('Email Address'),
+#         unique=True, null=True, blank=True
+#     )
+#     name = models.CharField(_('name'), max_length=255, default='')
+#     is_staff = models.BooleanField(
+#         _('staff status'),
+#         default=False,
+#         help_text=_('Designates whether the user can log into this admin site.'),
+#     )
+#     is_active = models.BooleanField(
+#         _('active'),
+#         default=False,
+#         help_text=_(
+#             'Designates whether this user should be treated as active. '
+#             'Unselect this instead of deleting accounts.'
+#         ),
+#     )
+#     groups = models.ManyToManyField(
+#             Group,
+#             blank=True,
+#             related_name="user_set",
+#             related_query_name="user",
+#             default=1
+#         )
+#     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
 
-    EMAIL_FIELD = 'email'
-    USERNAME_FIELD = 'username'
+#     EMAIL_FIELD = 'email'
+#     USERNAME_FIELD = 'username'
 
-    objects = UserManager()
+#     objects = UserManager()
 
-    def clean(self):
-        super().clean()
-        self.email = self.__class__.objects.normalize_email(self.email)
+#     def clean(self):
+#         super().clean()
+#         if self.email:
+#             self.email = self.__class__.objects.normalize_email(self.email)
 
-    def email_user(self, subject, message, from_email=None, **kwargs):
-        """Send an email to this user."""
-        send_mail(subject, message, from_email, [self.email], **kwargs)
+#     def email_user(self, subject, message, from_email=None, **kwargs):
+#         """Send an email to this user."""
+#         send_mail(subject, message, from_email, [self.email], **kwargs)
 
-    def set_username_by_name(self):
-        if not self.name:
-            raise ImproperlyConfigured('User must have a name!')
-        self.username = f'{self.name}{self.id}'
-        return self.username
+#     def set_username_by_name(self):
+#         if not self.name:
+#             raise ImproperlyConfigured('User must have a name!')
+#         self.username = f'{self.name}{self.id}'
+#         return self.username
 
-    def is_joined_recently(self):
-        """
-        Check if the user has joined recently or not
-        """
-        return \
-            timezone.now()-timezone.timedelta(hours=24) \
-            <= self.date_joined \
-            <= timezone.now()
+#     def is_joined_recently(self):
+#         """
+#         Check if the user has joined recently or not
+#         """
+#         return \
+#             timezone.now()-timezone.timedelta(hours=24) \
+#             <= self.date_joined \
+#             <= timezone.now()
 
-    def jdate_joined(self):
-        return jdt.fromgregorian(datetime=self.date_joined)
+#     def jdate_joined(self):
+#         return jdt.fromgregorian(datetime=self.date_joined)
 
 
 class Ticket(models.Model):
@@ -178,3 +173,13 @@ class Ticket(models.Model):
             print('----------error:')
             print(str(e))
         return self
+
+
+class Attendee(models.Model):
+    phone_number = models.IntegerField(
+        _('phone_number'),
+        unique=True, null=True, blank=True
+    )
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
+    user = models.ForeignKey(get_user_model(),
+        on_delete=models.SET_NULL, null=True, blank=True)
