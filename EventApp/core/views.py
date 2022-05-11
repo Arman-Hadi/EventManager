@@ -16,7 +16,7 @@ from core.models import WebHookMessage
 @non_atomic_requests
 def webhook(request):
     WebHookMessage.objects.filter(
-        received_at__lte=timezone.now() - timedelta(days=2)
+        recieved_at__lte=timezone.now() - timedelta(days=2)
     ).delete()
     payload = loads(request.body)
     WebHookMessage.objects.create(
