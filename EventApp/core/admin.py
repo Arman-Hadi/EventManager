@@ -32,10 +32,10 @@ from .models import WebHookMessage, Ticket, Attendee
 
 @admin.register(WebHookMessage)
 class WebHookMessageAdmin(admin.ModelAdmin):
-    ordering = ['recieved_at',]
-    list_display = ['recieved_at', 'id',]
+    ordering = ['received_at',]
+    list_display = ['received_at', 'id',]
     search_fields = ('payload',)
-    list_filter = ('recieved_at',)
+    list_filter = ('received_at',)
 
 
 @admin.register(Ticket)

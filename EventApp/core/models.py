@@ -14,15 +14,15 @@ from datetime import datetime
 
 
 class WebHookMessage(models.Model):
-    recieved_at = models.DateTimeField(
-        help_text=_('When message has recieved.'),
+    received_at = models.DateTimeField(
+        help_text=_('When message has received.'),
         default=timezone.now
     )
     payload = models.JSONField(default=None, null=True)
 
     class Meta:
         indexes = [
-            models.Index(fields=['recieved_at',]),
+            models.Index(fields=['received_at',]),
         ]
 
 

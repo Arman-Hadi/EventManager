@@ -14,7 +14,7 @@ from core.models import WebHookMessage, Ticket
 @non_atomic_requests
 def webhook(request):
     WebHookMessage.objects.filter(
-        recieved_at__lte=timezone.now() - timedelta(days=2)
+        received_at__lte=timezone.now() - timedelta(days=2)
     ).delete()
     try:
         payload = request.POST.copy()
